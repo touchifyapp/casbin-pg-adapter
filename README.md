@@ -7,6 +7,8 @@
 
 [PostgreSQL](https://www.postgresql.org/) native adapter for [Node-Casbin](https://github.com/casbin/node-casbin). With this library, Node-Casbin can load policy from PosgreSQL database or save policy to it. It supports loading filtered policies and is built for improving performances in PostgreSQL. It uses [node-postgres](https://node-postgres.com/) to connect to PostgreSQL.
 
+`casbin-pg-adapter` also adds advanced filtering capability. You can filter using `LIKE` or `regexp` expressions when using `loadFilteredPolicy`.
+
 ## Installation
 
 ```bash
@@ -42,6 +44,54 @@ async function myFunction() {
 
     // Save the policy back to DB.
     await e.savePolicy();
+}
+```
+
+## Filtering example
+
+```typescript
+import { newEnforcer } from "casbin";
+import PostgresAdapter from "casbin-pg-adapter";
+
+async function myFunction() {
+    const a = await PostgresAdapter.newAdapter({
+        connectionString: "postgresql://casbin:casbin@localhost:5432/casbin"
+    });
+
+    const e = await newEnforcer("examples/rbac_model.conf", a);
+
+    // Load the filtered policy from DB.
+    await e.loadFilteredPolicy({
+        p: ["alice"],
+        g: ["", "role:admin"]
+    });
+
+    // Check the permission.
+    e.enforce("alice", "data1", "read");
+}
+```
+
+## Advanced filtering example
+
+```typescript
+import { newEnforcer } from "casbin";
+import PostgresAdapter from "casbin-pg-adapter";
+
+async function myFunction() {
+    const a = await PostgresAdapter.newAdapter({
+        connectionString: "postgresql://casbin:casbin@localhost:5432/casbin"
+    });
+
+    const e = await newEnforcer("examples/rbac_model.conf", a);
+
+    // Load the filtered policy from DB.
+    await e.loadFilteredPolicy({
+        p: ["regex:(role:.*)|(alice)"],
+        g: ["", "like:role:%"]
+    });
+
+    // Check the permission.
+    e.enforce("alice", "data1", "read");
 }
 ```
 
