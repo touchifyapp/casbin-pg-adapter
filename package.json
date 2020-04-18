@@ -1,6 +1,6 @@
 {
   "name": "casbin-pg-adapter",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "PostgreSQL native adapter for Node-Casbin with filter capability and improved performance.",
   "author": "Touchify <dev@touchify.co>",
   "license": "MIT",
