@@ -1,0 +1,51 @@
+[
+    {
+        "ptype": "g",
+        "rule": [
+            "user1",
+            "role:users"
+        ]
+    },
+    {
+        "ptype": "g",
+        "rule": [
+            "user10",
+            "role:users"
+        ]
+    },
+    {
+        "ptype": "g",
+        "rule": [
+            "user11",
+            "role:admin"
+        ]
+    },
+    {
+        "ptype": "g",
+        "rule": [
+            "user12",
+            "role:admin"
+        ]
+    },
+    {
+        "ptype": "g",
+        "rule": [
+            "user1",
+            "role:custom"
+        ]
+    },
+    {
+        "ptype": "g",
+        "rule": [
+            "user10",
+            "role:custom"
+        ]
+    },
+    {
+        "ptype": "g",
+        "rule": [
+            "user11",
+            "role:custom"
+        ]
+    }
+]

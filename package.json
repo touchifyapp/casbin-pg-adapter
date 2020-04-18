@@ -1,0 +1,125 @@
+{
+  "name": "casbin-pg-adapter",
+  "version": "0.0.0",
+  "description": "PostgreSQL native adapter for Node-Casbin with filter capability and improved performance.",
+  "author": "Touchify <dev@touchify.co>",
+  "license": "MIT",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "homepage": "https://github.com/touchifyapp/casbin-pg-adapter#readme",
+  "bugs": {
+    "url": "https://github.com/touchifyapp/casbin-pg-adapter/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/touchifyapp/casbin-pg-adapter.git"
+  },
+  "files": [
+    "*.d.ts",
+    "*.js",
+    "lib/**/*.d.ts",
+    "lib/**/*.js",
+    "migrations/**/*.js"
+  ],
+  "scripts": {
+    "clean": "rimraf *.{js,d.ts} {lib,migrations}/**/*.{js,d.ts}",
+    "build": "npm run clean && npm run lint && npm run build:ts",
+    "build:ts": "tsc -p .",
+    "build:migrations": "tsc migrations/*.ts",
+    "test": "npm run clean && npm run lint && npm run build:migrations && npm run test:cleandb && npm run test:startdb && npm run test:jest",
+    "test:only": "npm run lint && npm run test:jest",
+    "test:coverage": "npm run test -- -- --coverage",
+    "test:jest": "jest --runInBand",
+    "test:startdb": "docker run --name casbin-pg-adapter-db -e POSTGRES_USER=casbin -e POSTGRES_PASSWORD=casbin -e POSTGRES_DB=casbin -p 5432:5432 -d postgres:11-alpine",
+    "test:cleandb": "docker rm casbin-pg-adapter-db --force || echo No DB running",
+    "lint": "npm run lint:ts",
+    "lint:ts": "eslint --ext .ts *.ts {lib,migrations}/**/*.ts",
+    "migrate": "node-pg-migrate",
+    "preversion": "npm run lint",
+    "postversion": "git push && git push --tags",
+    "prepublishOnly": "npm run test && npm run build"
+  },
+  "dependencies": {
+    "casbin": "^4.2.1",
+    "node-pg-migrate": "^4.6.1",
+    "pg": "^8.0.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^25.2.1",
+    "@types/node": "^13.11.1",
+    "@types/pg": "^7.14.3",
+    "@typescript-eslint/eslint-plugin": "^2.28.0",
+    "@typescript-eslint/parser": "^2.28.0",
+    "coveralls": "^3.0.11",
+    "eslint": "^6.8.0",
+    "jest": "^25.3.0",
+    "rimraf": "^3.0.2",
+    "ts-jest": "^25.4.0",
+    "typescript": "^3.8.3"
+  },
+  "keywords": [
+    "casbin",
+    "node-casbin",
+    "adapter",
+    "postgres",
+    "pg",
+    "node-pg",
+    "access-control",
+    "authorization",
+    "auth",
+    "authz",
+    "acl",
+    "rbac",
+    "abac"
+  ],
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/**/*.spec.ts"
+    ]
+  },
+  "eslintConfig": {
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "project": [
+        "./tsconfig.json",
+        "./tests/tsconfig.json"
+      ]
+    },
+    "env": {
+      "node": true
+    },
+    "plugins": [
+      "@typescript-eslint"
+    ],
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/eslint-recommended",
+      "plugin:@typescript-eslint/recommended"
+    ],
+    "rules": {
+      "@typescript-eslint/no-use-before-define": [
+        "error",
+        {
+          "functions": false,
+          "classes": false,
+          "typedefs": false
+        }
+      ],
+      "@typescript-eslint/explicit-function-return-type": [
+        "error",
+        {
+          "allowExpressions": true
+        }
+      ],
+      "@typescript-eslint/array-type": [
+        "error",
+        {
+          "default": "array-simple",
+          "readonly": "array-simple"
+        }
+      ]
+    }
+  }
+}

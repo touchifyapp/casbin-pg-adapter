@@ -1,0 +1,50 @@
+[
+    {
+        "ptype": "p",
+        "rule": [
+            "user1",
+            "data1",
+            "read"
+        ]
+    },
+    {
+        "ptype": "p",
+        "rule": [
+            "user1",
+            "data1",
+            "write"
+        ]
+    },
+    {
+        "ptype": "p",
+        "rule": [
+            "user2",
+            "data1",
+            "*"
+        ]
+    },
+    {
+        "ptype": "p",
+        "rule": [
+            "user3",
+            "data2",
+            "read"
+        ]
+    },
+    {
+        "ptype": "p",
+        "rule": [
+            "role:users",
+            "*",
+            "read"
+        ]
+    },
+    {
+        "ptype": "p",
+        "rule": [
+            "role:admin",
+            "*",
+            "*"
+        ]
+    }
+]
