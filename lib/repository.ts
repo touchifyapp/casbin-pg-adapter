@@ -99,7 +99,7 @@ function buildWhereClause(filter: CasbinFilter): [string, string[]] {
     const res: string[] = [];
 
     Object.keys(filter).forEach(ptype => {
-        if (!filter[ptype]) return;
+        if (!filter[ptype] || !filter[ptype].length) return;
 
         values.push(ptype)
         res.push(`(ptype = $${values.length} AND (${buildRuleWhereClause(filter[ptype], values)}))`);
@@ -117,8 +117,18 @@ function buildRuleWhereClause(ruleFilter: CasbinRuleFilter, values: string[], fi
     ruleFilter.forEach((value, i) => {
         if (value === null || value === "" || typeof value === "undefined") return;
 
-        values.push(value);
-        res.push(`rule->>${i + fieldIndex} = $${values.length}`);
+        if (value.startsWith("regex:")) {
+            values.push(value.replace("regex:", ""));
+            res.push(`rule->>${i + fieldIndex} ~ $${values.length}`);
+        }
+        else if (value.startsWith("like:")) {
+            values.push(value.replace("like:", ""));
+            res.push(`rule->>${i + fieldIndex} ~~ $${values.length}`);
+        }
+        else {
+            values.push(value);
+            res.push(`rule->>${i + fieldIndex} = $${values.length}`);
+        }
     });
 
     return res.join(" AND ");
