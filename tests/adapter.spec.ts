@@ -1,10 +1,13 @@
 import PostgresAdapter from "../";
+import { CasbinRepository } from "../lib/repository";
 
 import {
     Model
 } from "casbin";
 
 import {
+    connectionString,
+
     buildAdapter,
     buildModel,
 
@@ -29,7 +32,7 @@ afterAll(cleanEnv);
 describe("PostgresAdapter", () => {
     let a: PostgresAdapter;
 
-    describe(".loadPolicy()", () => {
+    describe("#loadPolicy()", () => {
         let m: Model;
 
         beforeAll(async () => {
@@ -57,7 +60,7 @@ describe("PostgresAdapter", () => {
         });
     });
 
-    describe(".loadFilteredPolicy()", () => {
+    describe("#loadFilteredPolicy()", () => {
         let m: Model;
 
         beforeAll(async () => {
@@ -99,7 +102,7 @@ describe("PostgresAdapter", () => {
         });
     });
 
-    describe(".addPolicy()", () => {
+    describe("#addPolicy()", () => {
         beforeEach(async () => { a = await buildAdapter(); });
         afterEach(() => Promise.all([cleanDB(), cleanAdapter(a)]));
 
@@ -115,7 +118,7 @@ describe("PostgresAdapter", () => {
         });
     });
 
-    describe(".removePolicy()", () => {
+    describe("#removePolicy()", () => {
         beforeAll(async () => {
             a = await buildAdapter();
             await importSampleData();
@@ -137,7 +140,7 @@ describe("PostgresAdapter", () => {
         });
     });
 
-    describe(".removeFilteredPolicy()", () => {
+    describe("#removeFilteredPolicy()", () => {
         beforeAll(async () => {
             a = await buildAdapter();
             await importSampleData();
@@ -164,7 +167,7 @@ describe("PostgresAdapter", () => {
         });
     });
 
-    describe(".savePolicy()", () => {
+    describe("#savePolicy()", () => {
         let m: Model;
 
         beforeEach(async () => {
@@ -218,6 +221,44 @@ describe("PostgresAdapter", () => {
             expect(rules).toEqual(
                 expect.not.arrayContaining(POLICIES)
             );
+        });
+    });
+
+    describe(".newAdapater()", () => {
+        let a: PostgresAdapter;
+        let spy: jest.SpyInstance;
+        beforeEach(() => { spy = jest.spyOn(CasbinRepository.prototype, "migrate"); });
+        afterEach(async () => { spy.mockRestore(); await a.close(); });
+
+        test("should resolves with PostgresAdapter", async () => {
+            a = await PostgresAdapter.newAdapter({ connectionString });
+            expect(a).toBeInstanceOf(PostgresAdapter);
+        });
+
+        test("should call repo.migrate() if not migrate option is passed", async () => {
+            a = await PostgresAdapter.newAdapter({ connectionString });
+            expect(spy).toBeCalledTimes(1);
+        });
+
+        test("should not call repo.migrate() if migrate = false", async () => {
+            a = await PostgresAdapter.newAdapter({ connectionString, migrate: false });
+            expect(spy).not.toBeCalled();
+        });
+    });
+
+    describe(".migrate()", () => {
+        let spy: jest.SpyInstance;
+        beforeEach(() => { spy = jest.spyOn(CasbinRepository.prototype, "migrate"); });
+        afterEach(() => { spy.mockRestore(); });
+
+        test("should resolves with void", async () => {
+            const res = await PostgresAdapter.migrate({ connectionString });
+            expect(res).toBeUndefined();
+        });
+
+        test("should call repo.migrate()", async () => {
+            await PostgresAdapter.migrate({ connectionString });
+            expect(spy).toBeCalledTimes(1);
         });
     });
 

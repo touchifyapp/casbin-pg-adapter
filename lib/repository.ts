@@ -16,7 +16,7 @@ export class CasbinRepository {
     private readonly options: PostgresAdapaterOptions;
     private readonly db: Pool;
 
-    public constructor(options: PostgresAdapaterOptions) {
+    public constructor(options: PostgresAdapaterOptions = {}) {
         this.options = options;
         this.db = new Pool(options);
     }
@@ -68,8 +68,12 @@ export class CasbinRepository {
     }
 
     public async open(): Promise<void> {
-        if (this.options.migrate === false) return;
+        if (this.options.migrate !== false) {
+            await this.migrate();
+        }
+    }
 
+    public async migrate(): Promise<void> {
         const client = await this.db.connect();
 
         await migrate({

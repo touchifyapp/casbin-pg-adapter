@@ -13,7 +13,7 @@ export class PostgresAdapter implements Adapter {
     private filtered = true;
     private readonly repo: CasbinRepository;
 
-    private constructor(options: PostgresAdapaterOptions = {}) {
+    private constructor(options?: PostgresAdapaterOptions) {
         this.repo = new CasbinRepository(options);
     }
 
@@ -21,6 +21,12 @@ export class PostgresAdapter implements Adapter {
         const adapter = new PostgresAdapter(options);
         await adapter.open();
         return adapter;
+    }
+
+    public static async migrate(options?: PostgresAdapaterOptions): Promise<void> {
+        const repo = new CasbinRepository(options);
+        await repo.migrate();
+        await repo.close();
     }
 
     public async open(): Promise<void> {

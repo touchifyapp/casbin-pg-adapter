@@ -107,7 +107,24 @@ See `node-postgres` documentation: [Connecting to PostgreSQL](https://node-postg
 Additionnally, you can pass the following option to the Adapter:
  * `migrate` (*Boolean*): If set to `false`, the Adapter will not apply migration when starting.
 
-**Note:** If you use this parameter, you should apply migration manually.
+**Note:** If you use this parameter, you should apply migration manually:
+
+```typescript
+async function startup(): Promise<void> {
+    PostgresAdapter.migrate({
+        connectionString: "postgresql://casbin:casbin@localhost:5432/casbin"
+    });
+}
+
+async function createEnforcer(): Promise<Enforcer> {
+    const a = await PostgresAdapter.newAdapter({
+        connectionString: "postgresql://casbin:casbin@localhost:5432/casbin",
+        migrate: false
+    });
+
+    return newEnforcer("examples/rbac_model.conf", a);
+}
+```
 
 #### Disabling filtered behavior
 
