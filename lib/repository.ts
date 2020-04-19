@@ -1,3 +1,5 @@
+import * as path from "path";
+
 import { Pool } from "pg";
 import migrate from "node-pg-migrate";
 
@@ -72,10 +74,10 @@ export class CasbinRepository {
 
         await migrate({
             dbClient: client,
-            dir: "migrations",
             direction: "up",
             count: Infinity,
-            migrationsTable: "migrations",
+            migrationsTable: "casbin_migrations",
+            dir: path.join(__dirname, "..", "migrations"),
             ignorePattern: "(.*\\.ts)|(\\..*)",
             log: () => void 0
         });
