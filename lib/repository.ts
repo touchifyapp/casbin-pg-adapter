@@ -105,10 +105,17 @@ function buildWhereClause(filter: CasbinFilter): [string, string[]] {
     const res: string[] = [];
 
     Object.keys(filter).forEach(ptype => {
-        if (!filter[ptype] || !filter[ptype].length) return;
+        values.push(ptype);
+        let typePredicate = `ptype = $${values.length}`;
 
-        values.push(ptype)
-        res.push(`(ptype = $${values.length} AND (${buildRuleWhereClause(filter[ptype], values)}))`);
+        if (filter[ptype] && filter[ptype].length) {
+            const rulePredicate = buildRuleWhereClause(filter[ptype], values);
+            if (rulePredicate) {
+                typePredicate = `(${typePredicate} AND (${rulePredicate}))`
+            }
+        }
+
+        res.push(typePredicate);
     });
 
     return [

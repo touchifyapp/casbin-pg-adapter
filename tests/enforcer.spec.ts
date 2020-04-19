@@ -96,6 +96,59 @@ describe("PostgresAdapter", () => {
             expect(getRulesFromModel(e.getModel(), "p")).toEqual(POLICIES.filter(p => p.rule[0].startsWith("role:") || p.rule[0] === "user1"));
             expect(getRulesFromModel(e.getModel(), "g")).toEqual(ROLES.filter(p => p.rule[1].startsWith("role:")));
         });
+
+        test("should load all policies if no filter is passed", async () => {
+            await e.loadFilteredPolicy(null as any);
+
+            expect(getRulesFromModel(e.getModel(), "p")).toEqual(POLICIES);
+            expect(getRulesFromModel(e.getModel(), "g")).toEqual(ROLES);
+        });
+
+        test("should load all policies if empty filter is passed", async () => {
+            await e.loadFilteredPolicy({} as any);
+
+            expect(getRulesFromModel(e.getModel(), "p")).toEqual(POLICIES);
+            expect(getRulesFromModel(e.getModel(), "g")).toEqual(ROLES);
+        });
+
+        test("should take all policies with ptype filter = null", async () => {
+            await e.loadFilteredPolicy({
+                p: ["", "data1"],
+                g: null as any
+            });
+
+            expect(getRulesFromModel(e.getModel(), "p")).toEqual(POLICIES.filter(p => p.rule[1] === "data1"));
+            expect(getRulesFromModel(e.getModel(), "g")).toEqual(ROLES);
+        });
+
+        test("should take all policies with ptype filter = empty array", async () => {
+            await e.loadFilteredPolicy({
+                p: ["", "data1"],
+                g: []
+            });
+
+            expect(getRulesFromModel(e.getModel(), "p")).toEqual(POLICIES.filter(p => p.rule[1] === "data1"));
+            expect(getRulesFromModel(e.getModel(), "g")).toEqual(ROLES);
+        });
+
+        test("should take all policies with ptype filter = array with only empty values", async () => {
+            await e.loadFilteredPolicy({
+                p: ["", "data1"],
+                g: ["", ""]
+            });
+
+            expect(getRulesFromModel(e.getModel(), "p")).toEqual(POLICIES.filter(p => p.rule[1] === "data1"));
+            expect(getRulesFromModel(e.getModel(), "g")).toEqual(ROLES);
+        });
+
+        test("should not take policies with ptype not specified in filter", async () => {
+            await e.loadFilteredPolicy({
+                p: ["", "data1"]
+            } as any);
+
+            expect(getRulesFromModel(e.getModel(), "p")).toEqual(POLICIES.filter(p => p.rule[1] === "data1"));
+            expect(getRulesFromModel(e.getModel(), "g")).toEqual([]);
+        });
     });
 
     describe(".addPolicy()", () => {
@@ -339,6 +392,7 @@ describe("PostgresAdapter", () => {
             m.addPolicy("p", "p", ["alice", "data", "read"]);
             m.addPolicy("p", "p", ["bob", "data", "write"]);
             m.addPolicy("p", "p", ["john", "data", "delete"]);
+            m.addPolicy("g", "g", ["john", "role:admin"]);
 
             await a.savePolicy(m);
 
@@ -347,7 +401,8 @@ describe("PostgresAdapter", () => {
                 expect.arrayContaining([
                     { ptype: "p", rule: ["alice", "data", "read"] },
                     { ptype: "p", rule: ["bob", "data", "write"] },
-                    { ptype: "p", rule: ["john", "data", "delete"] }
+                    { ptype: "p", rule: ["john", "data", "delete"] },
+                    { ptype: "g", rule: ["john", "role:admin"] }
                 ])
             );
         });
