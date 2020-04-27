@@ -1,3 +1,5 @@
+/* eslint @typescript-eslint/no-explicit-any: 0 */
+
 import { Duplex } from "stream";
 import { ConnectionOptions } from "tls";
 
@@ -12,6 +14,7 @@ export interface CasbinRule {
 export interface PostgresAdapaterOptions {
     // Custom options
     migrate?: boolean;
+    dbClient?: (exec: (client: any) => Promise<any>) => Promise<any>;
 
     // Client Config
     user?: string;

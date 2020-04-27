@@ -1,6 +1,6 @@
 import * as path from "path";
 
-import { Pool } from "pg";
+import { Pool, PoolClient } from "pg";
 import migrate from "node-pg-migrate";
 
 import {
@@ -14,30 +14,43 @@ import {
 
 export class CasbinRepository {
     private readonly options: PostgresAdapaterOptions;
-    private readonly db: Pool;
+    private readonly db: Pool | undefined;
+    private readonly dbClient: <T>(cb: (client: PoolClient) => Promise<T>) => Promise<T>;
 
     public constructor(options: PostgresAdapaterOptions = {}) {
         this.options = options;
-        this.db = new Pool(options);
+        if (options.dbClient) {
+            this.dbClient = options.dbClient;
+        }
+        else {
+            this.db = new Pool(options);
+            this.dbClient = buildDbClientFactory(this.db);
+        }
     }
 
     public async getAllPolicies(): Promise<CasbinRule[]> {
-        const { rows } = await this.db.query("SELECT ptype, rule FROM casbin");
-        return rows;
+        return this.dbClient(async (client) => {
+            const { rows } = await client.query("SELECT ptype, rule FROM casbin");
+            return rows;
+        });
     }
 
     public async getFilteredPolicies(filter: CasbinFilter): Promise<CasbinRule[]> {
         const [where, values] = buildWhereClause(filter);
 
-        const { rows } = await this.db.query("SELECT ptype, rule FROM casbin" + where, values);
-        return rows;
+        return this.dbClient(async (client) => {
+            const { rows } = await client.query("SELECT ptype, rule FROM casbin" + where, values);
+            return rows;
+        });
     }
 
     public async insertPolicy(ptype: string, rule: string[]): Promise<void> {
-        await this.db.query(
-            "INSERT INTO casbin (ptype, rule) VALUES ($1, $2::jsonb)",
-            [ptype, JSON.stringify(rule)]
-        );
+        return this.dbClient(async (client) => {
+            await client.query(
+                "INSERT INTO casbin (ptype, rule) VALUES ($1, $2::jsonb)",
+                [ptype, JSON.stringify(rule)]
+            );
+        });
     }
 
     public async insertPolicies(rules: CasbinRule[]): Promise<void> {
@@ -50,21 +63,27 @@ export class CasbinRepository {
             values.push(ptype, JSON.stringify(rule));
         }
 
-        await this.db.query(
-            "INSERT INTO casbin (ptype, rule) VALUES " + req.join(", "),
-            values
-        );
+        return this.dbClient(async (client) => {
+            await client.query(
+                "INSERT INTO casbin (ptype, rule) VALUES " + req.join(", "),
+                values
+            );
+        });
     }
 
     public async deletePolicies(ptype: string, ruleFilter: CasbinRuleFilter, fieldIndex?: number): Promise<void> {
         const values = [ptype];
         const req = `DELETE FROM casbin WHERE ptype=$${values.length} AND ` + buildRuleWhereClause(ruleFilter, values, fieldIndex);
 
-        await this.db.query(req, values);
+        return this.dbClient(async (client) => {
+            await client.query(req, values);
+        });
     }
 
     public async clearPolicies(): Promise<void> {
-        await this.db.query("DELETE FROM casbin");
+        return this.dbClient(async (client) => {
+            await client.query("DELETE FROM casbin");
+        });
     }
 
     public async open(): Promise<void> {
@@ -74,27 +93,43 @@ export class CasbinRepository {
     }
 
     public async migrate(): Promise<void> {
-        const client = await this.db.connect();
+        return this.dbClient(async (client) => {
+            await migrate({
+                dbClient: client,
+                direction: "up",
+                count: Infinity,
+                migrationsTable: "casbin_migrations",
+                dir: path.join(__dirname, "..", "migrations"),
+                ignorePattern: "(.*\\.ts)|(\\..*)",
+                log: () => void 0
+            });
 
-        await migrate({
-            dbClient: client,
-            direction: "up",
-            count: Infinity,
-            migrationsTable: "casbin_migrations",
-            dir: path.join(__dirname, "..", "migrations"),
-            ignorePattern: "(.*\\.ts)|(\\..*)",
-            log: () => void 0
         });
-
-        await client.release();
     }
 
     public async close(): Promise<void> {
-        await this.db.end();
+        if (this.db) {
+            await this.db.end();
+        }
     }
 }
 
 //#region Private Functions
+
+function buildDbClientFactory(pool: Pool): <T>(cb: (client: PoolClient) => Promise<T>) => Promise<T> {
+    return async function batch<T>(exec: (client: PoolClient) => Promise<T>): Promise<T> {
+        const client = await pool.connect();
+        try {
+            const res = await Promise.resolve(exec(client));
+            client.release();
+            return res;
+        }
+        catch (err) {
+            client.release();
+            throw err;
+        }
+    }
+}
 
 function buildWhereClause(filter: CasbinFilter): [string, string[]] {
     if (!filter) {
