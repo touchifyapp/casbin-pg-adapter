@@ -3,8 +3,26 @@ name: Run Tests
 on: [push, pull_request]
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: use NodeJS 12.x
+      uses: actions/setup-node@v1
+      with:
+        node-version: 12.x
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Lint project
+      run: npm run lint
+
+  test:
+    runs-on: ubuntu-latest
+    needs: [lint]
 
     strategy:
       matrix:
