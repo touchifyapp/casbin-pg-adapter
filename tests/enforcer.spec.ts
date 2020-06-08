@@ -183,6 +183,15 @@ describe("PostgresAdapter", () => {
             expect(rules).toContainEqual({ ptype: "p", rule: ["alice", "data3", "read"] });
         });
 
+        test("should return false when entity is not inserted", async () => {
+            e.enableAutoSave(true);
+
+            const ok = await e.addPolicy("alice", "data4", "read");
+            expect(ok).toBe(true);
+
+            const nok = await e.addPolicy("alice", "data4", "read");
+            expect(nok).toBe(false);
+        });
     });
 
     describe(".removePolicy()", () => {

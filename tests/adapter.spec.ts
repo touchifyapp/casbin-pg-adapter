@@ -169,6 +169,15 @@ describe("PostgresAdapter", () => {
             const rules = await dbGetAll();
             expect(rules).toEqual([{ ptype: "p", rule: ["alice", "data5", "read"] }]);
         });
+
+        test("should throw when inserting conflicting policy", async () => {
+            await a.addPolicy("p", "p", ["alice", "data6", "read"]);
+            await expect(a.addPolicy("p", "p", ["alice", "data6", "read"]))
+                .rejects.toMatchObject({
+                    code: "23505", // unique violation
+                    constraint: "casbin_uniq_rule"
+                });
+        });
     });
 
     describe("#removePolicy()", () => {
