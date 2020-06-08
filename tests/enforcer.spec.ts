@@ -192,6 +192,20 @@ describe("PostgresAdapter", () => {
             const nok = await e.addPolicy("alice", "data4", "read");
             expect(nok).toBe(false);
         });
+
+        test("should throws if duplicate rule is inserted", async () => {
+            e.enableAutoSave(true);
+
+            await e.addPolicy("alice", "data5", "read");
+
+            e.clearPolicy();
+
+            await expect(e.addPolicy("alice", "data5", "read"))
+                .rejects.toMatchObject({
+                    code: "23505", // unique violation
+                    constraint: "casbin_uniq_rule"
+                });
+        });
     });
 
     describe(".removePolicy()", () => {
