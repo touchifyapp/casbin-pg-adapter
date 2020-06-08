@@ -2,7 +2,7 @@
 
 [![NPM version](https://img.shields.io/npm/v/casbin-pg-adapter.svg?style=flat-square)](https://npmjs.org/package/casbin-pg-adapter)
 [![NPM download](https://img.shields.io/npm/dm/casbin-pg-adapter.svg?style=flat-square)](https://npmjs.org/package/casbin-pg-adapter)
-[![Build Status](https://travis-ci.org/touchifyapp/casbin-pg-adapter.svg?branch=master)](https://travis-ci.org/touchifyapp/casbin-pg-adapter)
+![Run Tests](https://github.com/touchifyapp/casbin-pg-adapter/workflows/Run%20Tests/badge.svg?branch=master&event=push)
 [![Coverage Status](https://coveralls.io/repos/github/touchifyapp/casbin-pg-adapter/badge.svg?branch=master)](https://coveralls.io/github/touchifyapp/casbin-pg-adapter?branch=master)
 
 [PostgreSQL](https://www.postgresql.org/) native adapter for [Node-Casbin](https://github.com/casbin/node-casbin). With this library, Node-Casbin can load policy from PosgreSQL database or save policy to it. It supports loading filtered policies and is built for improving performances in PostgreSQL. It uses [node-postgres](https://node-postgres.com/) to connect to PostgreSQL.
