@@ -38,7 +38,6 @@ jobs:
 
     - name: Collect coverage
       uses: coverallsapp/github-action@master
+      if: matrix.node-version == '12.x'
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        flag-name: run-${{ matrix.node-version }}
-        parallel: true
