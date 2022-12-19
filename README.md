@@ -24,7 +24,7 @@ import PostgresAdapter from "casbin-pg-adapter";
 async function myFunction() {
     // Initialize a Postgres adapter and use it in a Node-Casbin enforcer:
     // The adapter can not automatically create database.
-    // But the adapter will automatically and use the table named "casbin_rule".
+    // But the adapter will automatically and use the table named "casbin".
     // I think ORM should not automatically create databases.  
     const a = await PostgresAdapter.newAdapter({
         connectionString: "postgresql://casbin:casbin@localhost:5432/casbin"
